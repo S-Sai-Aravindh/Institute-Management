@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Institute_Management.Models;
-//using Institute_Management.Models.UserModule.cs;
-//using Institute_Management.DTOs;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Institute_Management.Controllers
@@ -18,31 +17,95 @@ namespace Institute_Management.Controllers
             _context = context;
         }
 
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<UserModule.User>>> GetUsers()
         {
-            if (loginDto == null || string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
+            return await _context.Users.ToListAsync();
+        }
+
+        [HttpGet("{id}")]
+        //public async Task<ActionResult<UserModule.User>> GetUser(int id)
+        //{
+        //    var user = await _context.Users.FindAsync(id);
+        //    if (user == null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    return user;
+        //}
+
+        //[HttpGet]
+        public async Task<IActionResult> AuthenticateUser([FromQuery] string email, [FromQuery] string password)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
-                return BadRequest("Invalid login request.");
+                return BadRequest(new { message = "Email and Password are required." });
             }
 
-            // Find the user by email
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+            // Find user by email
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-            if (user == null || user.Password != loginDto.Password) // In production, use hashed passwords
+            if (user == null)
             {
-                return Unauthorized("Invalid email or password.");
+                return NotFound(new { message = "User not found." });
             }
 
-            // Return user role and any other necessary information
+            // Check if the passwords match (In production, use hashed passwords)
+            if (user.Password != password)
+            {
+                return Unauthorized(new { message = "Invalid credentials." });
+            }
+
+            // Return user information if authenticated
             return Ok(new
             {
-                user.UserId,
-                user.Name,
-                user.Role,
-                user.Email,
-                user.Password
+                message = "Login successful",
+                UserId = user.UserId,
+                Name = user.Name,
+                Role = user.Role,
+                Email = user.Email,
+                ContactDetails = user.ContactDetails
             });
         }
+
+        // Handles login via POST /api/auth
+        [HttpPost]
+        public async Task<IActionResult> AuthenticateUser([FromBody] UserModule.User request)
+        {
+            return await Authenticate(request);
+        }
+
+        // Handles login via POST /api/auth/login
+        [HttpPost("login")]
+        public async Task<IActionResult> Authenticate([FromBody] UserModule.User request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+            {
+                return BadRequest(new { message = "Email and Password are required." });
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found." });
+            }
+
+            if (user.Password != request.Password) // Use hashed passwords in production
+            {
+                return Unauthorized(new { message = "Invalid credentials." });
+            }
+
+            return Ok(new
+            {
+                message = "Login successful",
+                UserId = user.UserId,
+                Name = user.Name,
+                Role = user.Role,
+                Email = user.Email,
+                ContactDetails = user.ContactDetails
+            });
+        }
+
     }
 }
