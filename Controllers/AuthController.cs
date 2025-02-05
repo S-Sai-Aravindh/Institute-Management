@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using Institute_Management.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Institute_Management.Services;
+using static Institute_Management.Models.UserModule;
 
 namespace Institute_Management.Controllers
 {
@@ -11,10 +14,12 @@ namespace Institute_Management.Controllers
     public class AuthController : ControllerBase
     {
         private readonly InstituteContext _context;
+        private readonly JwtService _jwtService;
 
-        public AuthController(InstituteContext context)
+        public AuthController(InstituteContext context, JwtService jwtService)
         {
             _context = context;
+            _jwtService = jwtService;
         }
 
         [HttpGet]
@@ -24,17 +29,6 @@ namespace Institute_Management.Controllers
         }
 
         [HttpGet("{id}")]
-        //public async Task<ActionResult<UserModule.User>> GetUser(int id)
-        //{
-        //    var user = await _context.Users.FindAsync(id);
-        //    if (user == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    return user;
-        //}
-
-        //[HttpGet]
         public async Task<IActionResult> AuthenticateUser([FromQuery] string email, [FromQuery] string password)
         {
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
@@ -42,7 +36,6 @@ namespace Institute_Management.Controllers
                 return BadRequest(new { message = "Email and Password are required." });
             }
 
-            // Find user by email
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
             if (user == null)
@@ -50,13 +43,11 @@ namespace Institute_Management.Controllers
                 return NotFound(new { message = "User not found." });
             }
 
-            // Check if the passwords match (In production, use hashed passwords)
             if (user.Password != password)
             {
                 return Unauthorized(new { message = "Invalid credentials." });
             }
 
-            // Return user information if authenticated
             return Ok(new
             {
                 message = "Login successful",
@@ -68,14 +59,12 @@ namespace Institute_Management.Controllers
             });
         }
 
-        // Handles login via POST /api/auth
         [HttpPost]
         public async Task<IActionResult> AuthenticateUser([FromBody] UserModule.User request)
         {
             return await Authenticate(request);
         }
 
-        // Handles login via POST /api/auth/login
         [HttpPost("login")]
         public async Task<IActionResult> Authenticate([FromBody] UserModule.User request)
         {
@@ -91,21 +80,39 @@ namespace Institute_Management.Controllers
                 return NotFound(new { message = "User not found." });
             }
 
-            if (user.Password != request.Password) // Use hashed passwords in production
+            if (user.Password != request.Password)
             {
                 return Unauthorized(new { message = "Invalid credentials." });
             }
 
-            return Ok(new
-            {
-                message = "Login successful",
-                UserId = user.UserId,
-                Name = user.Name,
-                Role = user.Role,
-                Email = user.Email,
-                ContactDetails = user.ContactDetails
-            });
+            var token = _jwtService.GenerateToken(user);
+            return Ok(new { message = "Login successful", token });
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin-data")]
+        public IActionResult GetAdminData()
+        {
+            return Ok(new { message = "This is admin-only data" });
+        }
+
+        [Authorize(Roles = "Teacher,Admin")]
+        [HttpGet("teacher-data")]
+        public IActionResult GetTeacherData()
+        {
+            return Ok(new { message = "This is teacher and admin accessible data" });
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] User user)
+        {
+            if (await _context.Users.AnyAsync(u => u.Email == user.Email))
+                return BadRequest("User already exists.");
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Registration successful" });
+        }
     }
 }
