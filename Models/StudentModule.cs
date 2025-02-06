@@ -17,6 +17,7 @@ namespace Institute_Management.Models
 
             [ForeignKey("BatchId")]
             public BatchModule.Batch Batch { get; set; }
+            public List<StudentCourseModule.StudentCourse> Enrollments { get; set; }
         }
     }
 }

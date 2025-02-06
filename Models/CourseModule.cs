@@ -15,6 +15,7 @@ namespace Institute_Management.Models
 
             [ForeignKey("TeacherId")]
             public TeacherModule.Teacher Teacher { get; set; }
+            public List<StudentCourseModule.StudentCourse> Enrollments { get; set; }
         }
     }
 }
