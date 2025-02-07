@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using static Institute_Management.Models.TeacherModule;
 
 namespace Institute_Management.Models
 {
@@ -16,6 +17,9 @@ namespace Institute_Management.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Teacher>()
+           .HasMany(t => t.Courses)
+           .WithOne(c => c.Teacher);
 
             // Configure composite primary key for StudentCourse
             modelBuilder.Entity<StudentCourseModule.StudentCourse>()

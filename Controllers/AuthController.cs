@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Institute_Management.Services;
 using static Institute_Management.Models.UserModule;
+using Institute_Management.DTOs;
 
 namespace Institute_Management.Controllers
 {
@@ -43,19 +44,24 @@ namespace Institute_Management.Controllers
                 return NotFound(new { message = "User not found." });
             }
 
-            if (user.Password != password)
+            if (user.Password != password) // Note: In a real application, always hash passwords
             {
                 return Unauthorized(new { message = "Invalid credentials." });
             }
 
+            var userDto = new UserDTO
+            {
+                UserId = user.UserId,
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role,
+                ContactDetails = user.ContactDetails
+            };
+
             return Ok(new
             {
                 message = "Login successful",
-                UserId = user.UserId,
-                Name = user.Name,
-                Role = user.Role,
-                Email = user.Email,
-                ContactDetails = user.ContactDetails
+                User = userDto
             });
         }
 

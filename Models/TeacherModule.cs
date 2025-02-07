@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using static Institute_Management.Models.CourseModule;
 
 namespace Institute_Management.Models
 {
@@ -14,6 +15,8 @@ namespace Institute_Management.Models
 
             [ForeignKey("UserId")]
             public UserModule.User User { get; set; }
+
+            public ICollection<Course> Courses { get; set; }
         }
     }
 }

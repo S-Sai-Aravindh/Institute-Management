@@ -3,6 +3,7 @@ using Institute_Management.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Institute_Management.Migrations
 {
     [DbContext(typeof(InstituteContext))]
-    partial class InstituteContextModelSnapshot : ModelSnapshot
+    [Migration("20250206075233_check")]
+    partial class check
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,11 +46,6 @@ namespace Institute_Management.Migrations
                         {
                             AdminId = 1,
                             UserId = 1
-                        },
-                        new
-                        {
-                            AdminId = 2,
-                            UserId = 5
                         });
                 });
 
@@ -60,14 +58,6 @@ namespace Institute_Management.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BatchId"));
 
                     b.Property<string>("BatchName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("BatchTiming")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("BatchType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -85,17 +75,7 @@ namespace Institute_Management.Migrations
                         {
                             BatchId = 1,
                             BatchName = "Batch A",
-                            BatchTiming = "9:00 AM - 11:00 AM",
-                            BatchType = "Morning",
                             CourseId = 1
-                        },
-                        new
-                        {
-                            BatchId = 2,
-                            BatchName = "Batch B",
-                            BatchTiming = "2:00 PM - 4:00 PM",
-                            BatchType = "Afternoon",
-                            CourseId = 2
                         });
                 });
 
@@ -131,13 +111,6 @@ namespace Institute_Management.Migrations
                             CourseName = "Algebra 101",
                             Description = "Introduction to Algebra",
                             TeacherId = 1
-                        },
-                        new
-                        {
-                            CourseId = 2,
-                            CourseName = "Physics 101",
-                            Description = "Basic concepts of Physics",
-                            TeacherId = 2
                         });
                 });
 
@@ -160,11 +133,6 @@ namespace Institute_Management.Migrations
                         {
                             StudentId = 1,
                             CourseId = 1
-                        },
-                        new
-                        {
-                            StudentId = 2,
-                            CourseId = 2
                         });
                 });
 
@@ -196,12 +164,6 @@ namespace Institute_Management.Migrations
                             StudentId = 1,
                             BatchId = 1,
                             UserId = 2
-                        },
-                        new
-                        {
-                            StudentId = 2,
-                            BatchId = 2,
-                            UserId = 4
                         });
                 });
 
@@ -232,12 +194,6 @@ namespace Institute_Management.Migrations
                             TeacherId = 1,
                             SubjectSpecialization = "Mathematics",
                             UserId = 3
-                        },
-                        new
-                        {
-                            TeacherId = 2,
-                            SubjectSpecialization = "Science",
-                            UserId = 6
                         });
                 });
 
@@ -300,33 +256,6 @@ namespace Institute_Management.Migrations
                             Name = "Teacher User",
                             Password = "teacher123",
                             Role = "Teacher"
-                        },
-                        new
-                        {
-                            UserId = 4,
-                            ContactDetails = "234-567-8902",
-                            Email = "student2@example.com",
-                            Name = "Student Two",
-                            Password = "student456",
-                            Role = "Student"
-                        },
-                        new
-                        {
-                            UserId = 5,
-                            ContactDetails = "123-456-7891",
-                            Email = "admin2@example.com",
-                            Name = "Admin Two",
-                            Password = "admin456",
-                            Role = "Admin"
-                        },
-                        new
-                        {
-                            UserId = 6,
-                            ContactDetails = "345-678-9013",
-                            Email = "teacher2@example.com",
-                            Name = "Teacher Two",
-                            Password = "teacher456",
-                            Role = "Teacher"
                         });
                 });
 
@@ -353,7 +282,7 @@ namespace Institute_Management.Migrations
             modelBuilder.Entity("Institute_Management.Models.CourseModule+Course", b =>
                 {
                     b.HasOne("Institute_Management.Models.TeacherModule+Teacher", "Teacher")
-                        .WithMany("Courses")
+                        .WithMany()
                         .HasForeignKey("TeacherId");
 
                     b.Navigation("Teacher");
@@ -362,13 +291,13 @@ namespace Institute_Management.Migrations
             modelBuilder.Entity("Institute_Management.Models.StudentCourseModule+StudentCourse", b =>
                 {
                     b.HasOne("Institute_Management.Models.CourseModule+Course", "Course")
-                        .WithMany("Enrollments")
+                        .WithMany()
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Institute_Management.Models.StudentModule+Student", "Student")
-                        .WithMany("Enrollments")
+                        .WithMany()
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -404,21 +333,6 @@ namespace Institute_Management.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Institute_Management.Models.CourseModule+Course", b =>
-                {
-                    b.Navigation("Enrollments");
-                });
-
-            modelBuilder.Entity("Institute_Management.Models.StudentModule+Student", b =>
-                {
-                    b.Navigation("Enrollments");
-                });
-
-            modelBuilder.Entity("Institute_Management.Models.TeacherModule+Teacher", b =>
-                {
-                    b.Navigation("Courses");
                 });
 #pragma warning restore 612, 618
         }

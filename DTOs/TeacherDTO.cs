@@ -7,5 +7,6 @@
         public string SubjectSpecialization { get; set; }
 
         public UserDTO User { get; set; }  // To include User details
+        public List<CourseDTO> Courses { get; set; }
     }
 }
